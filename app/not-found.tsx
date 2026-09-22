@@ -1,20 +1,35 @@
-import { LinkButton } from "../components/ui/Button";
-import { Container } from "../components/ui/Container";
+import Link from "next/link";
+import Container from "@/components/ui/Container";
 
 export default function NotFound() {
   return (
-    <Container className="flex min-h-[60vh] flex-col items-center justify-center py-20 text-center">
-      <p className="text-sm font-semibold uppercase tracking-wide text-brand-accent">404</p>
-      <h1 className="mt-2 text-3xl font-bold text-foreground">Page not found</h1>
-      <p className="mt-3 max-w-sm text-muted">
-        The page you&apos;re looking for doesn&apos;t exist or may have moved.
-      </p>
-      <div className="mt-6 flex gap-3">
-        <LinkButton href="/">Go to Homepage</LinkButton>
-        <LinkButton href="/contact" variant="outline">
-          Contact Us
-        </LinkButton>
-      </div>
-    </Container>
+    <section className="flex flex-1 items-center py-20">
+      <Container className="flex flex-col items-center gap-4 text-center">
+        <span className="text-sm font-semibold uppercase tracking-wide text-blue-700">
+          404
+        </span>
+        <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+          Page not found
+        </h1>
+        <p className="max-w-md text-slate-600">
+          The page you&apos;re looking for doesn&apos;t exist. Try one of the links
+          below or contact us on WhatsApp for help.
+        </p>
+        <div className="mt-4 flex flex-wrap justify-center gap-3">
+          <Link
+            href="/"
+            className="rounded-full bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800"
+          >
+            Go to Homepage
+          </Link>
+          <Link
+            href="/doctors"
+            className="rounded-full bg-slate-100 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200"
+          >
+            View Doctors
+          </Link>
+        </div>
+      </Container>
+    </section>
   );
 }

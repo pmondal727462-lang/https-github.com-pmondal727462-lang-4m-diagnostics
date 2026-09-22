@@ -1,61 +1,82 @@
 import type { Metadata } from "next";
-import { Container } from "../../components/ui/Container";
-import { BUSINESS } from "../../lib/constants";
+import PageHero from "@/components/ui/PageHero";
+import Container from "@/components/ui/Container";
+import { BUSINESS } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Terms of Use",
+  title: "Terms & Conditions",
+  description: "Terms and Conditions for using the 4M Diagnostics website.",
   alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {
   return (
-    <Container className="max-w-3xl py-14">
-      <h1 className="text-3xl font-bold text-foreground">Terms of Use</h1>
-      <div className="prose prose-neutral mt-6 space-y-5 text-sm leading-relaxed text-muted">
-        <p>
-          These terms govern your use of the {BUSINESS.name} website and the booking of tests,
-          packages, home sample collection, and doctor appointments through it. By using this
-          website, you agree to these terms.
-        </p>
+    <>
+      <PageHero eyebrow="Legal" title="Terms & Conditions" />
 
-        <h2 className="text-lg font-semibold text-foreground">Bookings</h2>
-        <p>
-          Test, package, and appointment availability, along with prices and offers, are
-          maintained by {BUSINESS.name} and may change. A booking is confirmed once payment is
-          successfully processed and you receive a booking confirmation.
-        </p>
+      <section className="py-14 sm:py-20">
+        <Container className="max-w-3xl">
+          <div className="prose prose-slate flex flex-col gap-6 text-sm leading-7 text-slate-700">
+            <p>
+              By using this website, you agree to the following terms and
+              conditions.
+            </p>
 
-        <h2 className="text-lg font-semibold text-foreground">Accuracy of information</h2>
-        <p>
-          Please provide accurate personal, contact, and address information at the time of
-          booking. Incorrect information may delay sample collection, appointments, or report
-          delivery.
-        </p>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">
+                Nature of This Website
+              </h2>
+              <p className="mt-2">
+                This website is an informational, frontend-only site for{" "}
+                {BUSINESS.name}. It does not process online payments, does not
+                include a patient login or dashboard, and does not store
+                personal or medical data in a database. All test bookings and
+                doctor appointment requests are submitted as WhatsApp
+                messages to our team, who will confirm details with you
+                directly.
+              </p>
+            </div>
 
-        <h2 className="text-lg font-semibold text-foreground">Reports and medical advice</h2>
-        <p>
-          Diagnostic reports are prepared by our laboratory and are intended to support, not
-          replace, consultation with a qualified healthcare professional. {BUSINESS.name} does
-          not provide medical diagnosis through this website or its AI assistant.
-        </p>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">
+                Appointment & Booking Confirmation
+              </h2>
+              <p className="mt-2">
+                Submitting a form on this website does not guarantee an
+                appointment or test slot. All bookings are subject to
+                confirmation by {BUSINESS.name} over WhatsApp or phone,
+                including availability, timing and pricing.
+              </p>
+            </div>
 
-        <h2 className="text-lg font-semibold text-foreground">Payments</h2>
-        <p>
-          Payments made through this website are processed via a secure third-party payment
-          gateway. {BUSINESS.name} does not store your full payment card details.
-        </p>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">
+                Pricing
+              </h2>
+              <p className="mt-2">
+                Test and package prices are not published on this website, as
+                pricing may vary. Please contact {BUSINESS.name} directly for
+                current pricing and availability.
+              </p>
+            </div>
 
-        <h2 className="text-lg font-semibold text-foreground">Changes to these terms</h2>
-        <p>
-          We may update these terms from time to time. Continued use of this website after an
-          update constitutes acceptance of the revised terms.
-        </p>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">
+                Contact
+              </h2>
+              <p className="mt-2">
+                For questions about these terms, contact us at{" "}
+                {BUSINESS.phoneDisplay} or via WhatsApp.
+              </p>
+            </div>
 
-        <h2 className="text-lg font-semibold text-foreground">Contact</h2>
-        <p>
-          For questions about these terms, contact {BUSINESS.name} at {BUSINESS.phone}.
-        </p>
-      </div>
-    </Container>
+            <p className="text-xs text-slate-500">
+              This page should be reviewed and confirmed by 4M Diagnostics
+              staff before publishing.
+            </p>
+          </div>
+        </Container>
+      </section>
+    </>
   );
 }

@@ -1,48 +1,48 @@
 import type { Metadata } from "next";
-import { Container } from "../../components/ui/Container";
-import { SectionHeading, EmptyState } from "../../components/ui/Card";
-import { getActiveFaqs } from "../../lib/data/faqs";
-import { faqJsonLd } from "../../lib/seo";
+import PageHero from "@/components/ui/PageHero";
+import Container from "@/components/ui/Container";
+import FaqAccordion from "@/components/FaqAccordion";
+import { FAQS } from "@/lib/faq";
 
 export const metadata: Metadata = {
   title: "FAQ",
-  description: "Frequently asked questions about tests, bookings, and reports at 4M Diagnostics.",
+  description:
+    "Frequently asked questions about booking tests, doctor appointments, home sample collection and pricing at 4M Diagnostics, Narendrapur.",
   alternates: { canonical: "/faq" },
 };
 
-export default async function FaqPage() {
-  const faqs = await getActiveFaqs();
+export default function FaqPage() {
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
 
   return (
-    <Container className="py-14">
-      <SectionHeading eyebrow="Support" title="Frequently Asked Questions" />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
 
-      <div className="mt-8 max-w-3xl">
-        {faqs.length === 0 ? (
-          <EmptyState title="FAQs will appear here soon" />
-        ) : (
-          <>
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{
-                __html: JSON.stringify(
-                  faqJsonLd(faqs.map((f) => ({ question: f.question, answer: f.answer }))),
-                ),
-              }}
-            />
-            <div className="divide-y divide-border rounded-2xl border border-border bg-surface">
-              {faqs.map((faq) => (
-                <details key={faq.id} className="group p-5">
-                  <summary className="cursor-pointer list-none text-sm font-semibold text-foreground marker:content-none">
-                    {faq.question}
-                  </summary>
-                  <p className="mt-2 text-sm text-muted">{faq.answer}</p>
-                </details>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-    </Container>
+      <PageHero
+        eyebrow="FAQ"
+        title="Frequently asked questions"
+        subtitle="Everything you need to know about booking tests, appointments and home sample collection."
+      />
+
+      <section className="py-14 sm:py-20">
+        <Container className="max-w-3xl">
+          <FaqAccordion items={FAQS} />
+        </Container>
+      </section>
+    </>
   );
 }

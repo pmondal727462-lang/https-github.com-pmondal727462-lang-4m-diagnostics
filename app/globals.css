@@ -1,35 +1,45 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f9fb;
-  --surface: #ffffff;
-  --foreground: #0f2733;
-  --muted: #5b7480;
+  --background: #ffffff;
+  --foreground: #0f172a;
+}
 
-  --brand-primary: #0d6e8f;
-  --brand-primary-dark: #0a5670;
-  --brand-accent: #0d9488;
-  --brand-accent-dark: #0b7c72;
+/*
+ * Brand palette sampled directly from the 4M Diagnostics logo
+ * (red heartbeat mark + indigo-blue wordmark). These override Tailwind's
+ * built-in `blue` and `red` color scales, so every `bg-blue-*`, `text-red-*`,
+ * etc. utility used across the site already resolves to the logo's colors.
+ */
+@theme {
+  --color-blue-50: #f1f1fe;
+  --color-blue-100: #deddfd;
+  --color-blue-200: #b8b7fa;
+  --color-blue-300: #8482f7;
+  --color-blue-400: #423ff3;
+  --color-blue-500: #120ee1;
+  --color-blue-600: #0e0cb6;
+  --color-blue-700: #0c0995;
+  --color-blue-800: #0a087d;
+  --color-blue-900: #080665;
+  --color-blue-950: #05043e;
 
-  --border: #dde6ea;
-  --success: #16a34a;
-  --danger: #dc2626;
-  --warning: #d97706;
+  --color-red-50: #fff0f0;
+  --color-red-100: #fedcdc;
+  --color-red-200: #feb9b9;
+  --color-red-300: #fd8281;
+  --color-red-400: #fc4745;
+  --color-red-500: #fb1a18;
+  --color-red-600: #ec0604;
+  --color-red-700: #c90503;
+  --color-red-800: #ab0403;
+  --color-red-900: #8d0302;
+  --color-red-950: #5a0201;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-brand-primary: var(--brand-primary);
-  --color-brand-primary-dark: var(--brand-primary-dark);
-  --color-brand-accent: var(--brand-accent);
-  --color-brand-accent-dark: var(--brand-accent-dark);
-  --color-border: var(--border);
-  --color-success: var(--success);
-  --color-danger: var(--danger);
-  --color-warning: var(--warning);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -37,9 +47,20 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
-::selection {
-  background: var(--brand-accent);
-  color: white;
+/* Soft dot-grid texture used behind hero / page-hero sections */
+.bg-dot-grid {
+  background-image: radial-gradient(circle, rgba(12, 9, 149, 0.16) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Large soft blurred color blobs for premium, layered hero backgrounds */
+.bg-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(64px);
+  opacity: 0.55;
+  pointer-events: none;
 }

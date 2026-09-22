@@ -1,79 +1,32 @@
 import Link from "next/link";
-import { Container } from "../ui/Container";
-import { BUSINESS } from "../../lib/constants";
+import { ArrowRight } from "lucide-react";
+import { QUICK_ACTIONS } from "@/lib/services";
+import { getServiceIcon } from "@/components/ui/icon-map";
+import IconBadge from "@/components/ui/IconBadge";
 
-const actions = [
-  {
-    href: "/book-test",
-    title: "Book a Test",
-    description: "Search and book any diagnostic test online.",
-    icon: "🧪",
-  },
-  {
-    href: "/home-sample-collection",
-    title: "Home Sample Collection",
-    description: "Request a sample pickup at your address.",
-    icon: "🏠",
-  },
-  {
-    href: "/reports",
-    title: "Download Report",
-    description: "Access your reports securely, anytime.",
-    icon: "📄",
-  },
-  {
-    href: "/doctors",
-    title: "Doctor Appointment",
-    description: "Book a consultation with our doctors.",
-    icon: "🩺",
-  },
-  {
-    href: "/ai-assistant",
-    title: "Ask 4M AI",
-    description: "Get quick answers about tests and bookings.",
-    icon: "🤖",
-  },
-  {
-    href: BUSINESS.googleMapsUrl,
-    title: "Get Directions",
-    description: "Find your way to 4M Diagnostics.",
-    icon: "📍",
-    external: true,
-  },
-];
-
-export function QuickActions() {
+export default function QuickActions() {
   return (
-    <section className="py-14">
-      <Container>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {actions.map((action) =>
-            action.external ? (
-              <a
-                key={action.title}
-                href={action.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-surface p-5 text-center transition-shadow hover:shadow-md"
-              >
-                <span className="text-3xl">{action.icon}</span>
-                <span className="text-sm font-semibold text-foreground">{action.title}</span>
-                <span className="text-xs text-muted">{action.description}</span>
-              </a>
-            ) : (
-              <Link
-                key={action.title}
-                href={action.href}
-                className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-surface p-5 text-center transition-shadow hover:shadow-md"
-              >
-                <span className="text-3xl">{action.icon}</span>
-                <span className="text-sm font-semibold text-foreground">{action.title}</span>
-                <span className="text-xs text-muted">{action.description}</span>
-              </Link>
-            ),
-          )}
-        </div>
-      </Container>
-    </section>
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {QUICK_ACTIONS.map((action) => {
+        const Icon = getServiceIcon(action.icon);
+        const isExternal = action.href.startsWith("http");
+        return (
+          <Link
+            key={action.title}
+            href={action.href}
+            target={isExternal ? "_blank" : undefined}
+            rel={isExternal ? "noopener noreferrer" : undefined}
+            className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-900/10"
+          >
+            <IconBadge icon={Icon} tone={action.tone} size="md" />
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-slate-900">{action.title}</p>
+              <p className="truncate text-xs text-slate-500">{action.description}</p>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-700" />
+          </Link>
+        );
+      })}
+    </div>
   );
 }

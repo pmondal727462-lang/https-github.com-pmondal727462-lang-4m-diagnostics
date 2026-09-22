@@ -1,38 +1,41 @@
 import type { MetadataRoute } from "next";
-import { prisma } from "../lib/prisma";
-import { SITE_URL } from "../lib/seo";
+import { SITE_URL } from "@/lib/constants";
+import { getAllDoctorSlugs } from "@/lib/doctors";
 
-const STATIC_PATHS = [
-  "/",
-  "/about",
-  "/services",
-  "/tests",
-  "/packages",
-  "/book-test",
-  "/home-sample-collection",
-  "/doctors",
-  "/appointments",
-  "/reports",
-  "/contact",
-  "/faq",
-  "/blog",
-  "/ai-assistant",
-  "/privacy-policy",
-  "/terms",
-  "/refund-policy",
+const STATIC_ROUTES = [
+  { path: "/", priority: 1, changeFrequency: "weekly" as const },
+  { path: "/about", priority: 0.7, changeFrequency: "monthly" as const },
+  { path: "/services", priority: 0.8, changeFrequency: "monthly" as const },
+  { path: "/tests", priority: 0.8, changeFrequency: "weekly" as const },
+  { path: "/blood-tests", priority: 0.8, changeFrequency: "weekly" as const },
+  { path: "/health-packages", priority: 0.8, changeFrequency: "weekly" as const },
+  { path: "/home-sample-collection", priority: 0.7, changeFrequency: "monthly" as const },
+  { path: "/doctors", priority: 0.9, changeFrequency: "weekly" as const },
+  { path: "/book-test", priority: 0.6, changeFrequency: "monthly" as const },
+  { path: "/appointment", priority: 0.6, changeFrequency: "monthly" as const },
+  { path: "/polyclinic", priority: 0.7, changeFrequency: "monthly" as const },
+  { path: "/faq", priority: 0.5, changeFrequency: "monthly" as const },
+  { path: "/contact", priority: 0.6, changeFrequency: "monthly" as const },
+  { path: "/privacy-policy", priority: 0.2, changeFrequency: "yearly" as const },
+  { path: "/terms", priority: 0.2, changeFrequency: "yearly" as const },
 ];
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [tests, packages, posts] = await Promise.all([
-    prisma.test.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } }),
-    prisma.package.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } }),
-    prisma.blog.findMany({ where: { status: "PUBLISHED" }, select: { slug: true, updatedAt: true } }),
-  ]);
+export default function sitemap(): MetadataRoute.Sitemap {
+  const now = new Date();
 
-  return [
-    ...STATIC_PATHS.map((path) => ({ url: `${SITE_URL}${path}`, lastModified: new Date() })),
-    ...tests.map((t) => ({ url: `${SITE_URL}/tests/${t.slug}`, lastModified: t.updatedAt })),
-    ...packages.map((p) => ({ url: `${SITE_URL}/packages/${p.slug}`, lastModified: p.updatedAt })),
-    ...posts.map((p) => ({ url: `${SITE_URL}/blog/${p.slug}`, lastModified: p.updatedAt })),
-  ];
+  const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((route) => ({
+    url: `${SITE_URL}${route.path}`,
+    lastModified: now,
+    changeFrequency: route.changeFrequency,
+    priority: route.priority,
+  }));
+
+  const doctorEntries: MetadataRoute.Sitemap = getAllDoctorSlugs().map((slug) => ({
+    url: `${SITE_URL}/doctors/${slug}`,
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
+  return [...staticEntries, ...doctorEntries];
 }

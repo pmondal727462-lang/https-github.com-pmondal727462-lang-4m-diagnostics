@@ -1,203 +1,95 @@
-# 4M Diagnostics
+# 4M Diagnostics Website
 
-AI-enabled diagnostic centre website and admin platform for **4M Diagnostics**
-(Ward No:25, Southern Bypass 402, School Rd, Dakshin Jagaddal, Narendrapur,
-Rajpur Sonarpur, West Bengal - 700151 · +91 81003 47637).
+A frontend-only, WhatsApp-booking website for 4M Diagnostics (diagnostic center, Narendrapur, West Bengal), built with Next.js 16 (App Router), React 19, TypeScript and Tailwind CSS v4.
 
-A single Next.js 16 (App Router) application: the public website, the REST
-API (Route Handlers + Server Actions), and the `/admin` dashboard all live in
-one deployable project, backed by PostgreSQL via Prisma 7.
+There is **no backend, database, admin panel, patient login/portal, or online payment** by design. Every booking action (tests, doctor appointments, home sample collection, package enquiries) opens WhatsApp with a pre-filled message; 4M Diagnostics staff confirm bookings directly over WhatsApp/phone.
 
-> **No fabricated data.** Tests, packages, doctors, prices, offers, report
-> times, and every other business fact are managed entirely from the Admin
-> Dashboard and stored in the database — nothing is hard-coded in source.
-
-## Tech stack
-
-- **Frontend/Backend:** Next.js 16 (App Router, Turbopack), React 19, TypeScript
-- **Styling:** Tailwind CSS v4
-- **Database:** PostgreSQL (via Prisma ORM 7, `@prisma/adapter-pg`)
-- **Auth:** JWT session cookies (`jose`) for admin/staff, mobile + OTP for patients
-- **Validation:** Zod
-- **Payments:** Razorpay (order creation + signature verification; wire in once keys are configured)
-- **Notifications:** SMS / WhatsApp Business API / SMTP email (provider-abstracted; falls back to logging when unconfigured)
-- **File storage:** S3-compatible storage (for reports, invoices, images)
-
-## Requirements
-
-- Node.js **20.9+** (Next.js 16 minimum)
-- PostgreSQL **15+**
-- npm
-
-## 1. Install dependencies
+## 1. Installation
 
 ```bash
 npm install
 ```
 
-## 2. Configure environment variables
-
-```bash
-cp .env.example .env
-```
-
-Fill in `.env`:
-
-| Variable | Required for |
-|---|---|
-| `DATABASE_URL` | Everything — PostgreSQL connection string |
-| `NEXT_PUBLIC_APP_URL` | Canonical URLs, sitemap, metadata |
-| `JWT_SECRET`, `OTP_SECRET` | Admin sessions and patient OTP hashing |
-| `RAZORPAY_KEY_ID` / `_SECRET` / `_WEBHOOK_SECRET` | Online payments |
-| `SMTP_*` | Transactional email |
-| `WHATSAPP_API_URL` / `_ACCESS_TOKEN` / `_PHONE_NUMBER_ID` | WhatsApp notifications |
-| `SMS_API_URL` / `SMS_API_KEY` | SMS + OTP delivery |
-| `S3_*` | Report/invoice/image storage |
-| `AI_API_KEY` | Reserved for a future LLM-backed upgrade to the AI assistant (see below) |
-| `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | Creates the first SUPER_ADMIN account when seeding |
-
-Generate strong random values for `JWT_SECRET` / `OTP_SECRET`:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-**Never commit `.env`.** `SMS_API_KEY`, `WHATSAPP_ACCESS_TOKEN`, `RAZORPAY_KEY_SECRET`,
-`S3_SECRET_KEY`, `SMTP_PASSWORD`, `JWT_SECRET`, and `OTP_SECRET` are all server-only
-secrets and are never sent to the browser.
-
-### Provider credentials left unconfigured on purpose
-
-This build ships with real, working code paths for Razorpay, WhatsApp, SMS,
-Email and S3, but the actual third-party accounts were never provided, so:
-
-- **OTP delivery** falls back to logging the code to the server console (and,
-  outside `NODE_ENV=production` only, returning it in the API response) so
-  the login/report flows are fully testable without an SMS account.
-- **Payments** currently confirm bookings without an online charge ("pay at
-  centre"); wiring `RAZORPAY_*` activates the Razorpay flow described in the
-  project brief (create order → checkout → verify signature → webhook).
-- **Report file uploads/downloads** need `S3_*` configured before the admin
-  report-upload and patient download features go live.
-- **WhatsApp/SMS/Email sends** log to the `WhatsAppLog` / `SMSLog` / `EmailLog`
-  tables until their provider credentials are set.
-
-## 3. Set up the database
-
-Point `DATABASE_URL` at a real PostgreSQL 15+ server, then:
-
-```bash
-npx prisma migrate dev --name init   # creates tables
-npx prisma db seed                   # seeds roles, business info, and the first admin account
-```
-
-Seeding only writes verified business facts (name, address, phone, Google
-Maps link, and the three confirmed services) plus system roles and the
-initial `SUPER_ADMIN` account — **no tests, packages, doctors, or prices are
-seeded**. Add those from `/admin` after logging in.
-
-> **Local development without a PostgreSQL server?** Prisma ships a
-> zero-config local Postgres for development: `npx prisma dev` prints a
-> `DATABASE_URL` you can paste into `.env`. It's convenient, but under heavy
-> concurrent load (e.g. running `next build` while `next dev` is also
-> connected) it can drop its connection and need a restart
-> (`npx prisma dev stop default && npx prisma dev -d`). For anything beyond
-> quick local iteration, use a real Postgres instance.
-
-## 4. Run the app
+## 2. Development
 
 ```bash
 npm run dev
 ```
 
-Visit `http://localhost:3000` for the public site and
-`http://localhost:3000/admin/login` for the admin dashboard (sign in with
-`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`, then change the password).
+Open [http://localhost:3000](http://localhost:3000).
 
-## 5. Production build
+## 3. Production build
 
 ```bash
 npm run build
 npm run start
 ```
 
-## Project structure
+`npm run build` runs the TypeScript check and generates static pages for every route, including one page per doctor (via `generateStaticParams`).
+
+## 4. Deploying to Vercel
+
+1. Push this repository to GitHub (a remote is already configured for this repo).
+2. Go to [vercel.com/new](https://vercel.com/new) and import the repository.
+3. Framework preset: **Next.js** (auto-detected). No environment variables are required to build, but see "Before launch" below for `NEXT_PUBLIC_SITE_URL`.
+4. Click **Deploy**. Vercel will build and host the site; every push to the main branch redeploys automatically.
+
+## 5. Project structure
 
 ```
-app/                    Public pages, /admin dashboard, and API route handlers
-  admin/(dashboard)/     Sidebar-driven admin screens (auth-gated by proxy.ts)
-  api/                   REST endpoints (bookings, appointments, auth/OTP, AI chat, ...)
-  [public routes]/       /, /tests, /packages, /doctors, /book-test, /reports, ...
-components/              UI primitives, layout chrome, admin/public feature components
+app/                          Route segments (App Router)
+  page.tsx                    Homepage
+  about/ services/ tests/ blood-tests/ health-packages/
+  home-sample-collection/ doctors/ doctors/[doctor-slug]/
+  book-test/ appointment/ polyclinic/ faq/ contact/
+  privacy-policy/ terms/
+  sitemap.ts robots.ts        Generated sitemap.xml / robots.txt
+  layout.tsx                  Root layout, global metadata, JSON-LD
+components/
+  layout/                     Header, Footer, MobileBottomNav, FloatingWhatsApp
+  home/                       Hero, QuickActions
+  doctors/                    DoctorCard, DoctorDirectory, AppointmentModal
+  tests/                      TestCard, TestDirectory, BookTestForm
+  packages/                   PackageCard
+  appointment/                AppointmentForm (full-page /appointment)
+  home-collection/            HomeCollectionForm
+  ui/                         Container, SectionHeading, PageHero, IconBadge, PhotoBanner, icon-map
+  FaqAccordion.tsx, ServiceCard.tsx
 lib/
-  data/                  Server-side Prisma read queries, grouped by domain
-  actions/               Server Actions used by admin CRUD forms
-  validations/           Zod schemas for API input
-  auth/                  Password hashing + JWT session helpers
-  ai/                    4M AI Assistant logic (safety rules + knowledge-base search)
-prisma/
-  schema.prisma          Full data model (30+ models)
-  seed.ts                Seeds only verified business facts — no fabricated data
-proxy.ts                 Route protection for /admin/** (Next.js 16's middleware successor)
-generated/prisma/        Generated Prisma Client (gitignored, regenerate with `prisma generate`)
+  constants.ts                 Business info, nav links, disclaimer text
+  doctors.ts                    All 42 doctor records + search/filter helpers
+  blood-tests.ts                Blood test catalogue (20 categories)
+  health-packages.ts            Health package list
+  services.ts                   Services, quick actions, polyclinic specialties
+  faq.ts                        FAQ content
+  whatsapp.ts                   WhatsApp message builders + URL builder
+  types.ts                      Shared TypeScript types
 ```
 
-## What's implemented vs. what's next
+## 6. How WhatsApp booking works
 
-Built and verified end-to-end (admin create → public site → booking API →
-database), matching the project brief's own phased build order:
+Every "Book on WhatsApp" / "Book Appointment" / "Enquire on WhatsApp" action builds a message client-side and opens:
 
-1. Project scaffold, TypeScript, Tailwind, Prisma schema, seed data
-2. Public website: homepage, tests/packages search + detail, doctors, FAQ,
-   blog, contact, legal pages, all reading live from the database with
-   proper loading/empty states
-3. Admin Dashboard: auth, sidebar, stats + 7-day bookings chart, **Test
-   Management** and **Package Management** (full CRUD), plus working Services,
-   Test Categories, FAQs, Bookings, Home Collection, Appointments, Patients,
-   Settings, and Audit Logs screens
-4. Patient OTP login, online booking (test/package + home collection),
-   doctor appointment requests, secure OTP-gated report portal with access
-   logging, and a knowledge-base-backed 4M AI Assistant with medical-safety
-   guardrails
+```
+https://wa.me/918100347637?text=<url-encoded message>
+```
 
-Scaffolded with a clear "coming soon" placeholder, ready for the next phase
-once the relevant third-party credentials are supplied: **Payments**
-(Razorpay), **Invoices** (PDF generation), **Report upload** (S3), **Doctor
-management UI**, **Staff management UI**, **Coupons/Offers admin UI**,
-**Blog CMS UI**, **AI Knowledge Base admin UI**, and **WhatsApp/SMS/Email
-template management**.
+No data is submitted to any server; nothing is stored by this website. See `lib/whatsapp.ts` for the exact message templates (test booking, doctor appointment, home sample collection, package enquiry).
 
-## Security notes
+## 7. Before launch — information 4M Diagnostics must confirm
 
-- Admin/staff passwords are hashed with bcrypt; sessions are signed JWTs in
-  `httpOnly`, `sameSite=lax` cookies (`secure` in production).
-- `/admin/**` is protected by `proxy.ts` (redirects to `/admin/login` without
-  a valid session) in addition to a server-side session check in the
-  dashboard layout.
-- Patient OTPs are hashed (never stored in plaintext), expire after 10
-  minutes, and are rate-limited to one request per minute per mobile number.
-- Every report view/download is written to `ReportAccessLog`; every admin
-  auth event and mutation (create/update/delete test, package, booking
-  status, etc.) is written to `AuditLog`.
-- Reports are never reachable by a guessable URL — access requires a verified
-  patient session.
+- **Doctor data**: All 42 doctor names, qualifications, affiliations, consultation days/times and "By Appointment" status in `lib/doctors.ts` were transcribed from the supplied doctor list and must be verified by 4M Diagnostics staff before publishing. Nothing was invented; where only "By Appointment" was given, no fixed time was added.
+- **Live domain**: Set the `NEXT_PUBLIC_SITE_URL` environment variable (in Vercel: Project Settings → Environment Variables) to the real production domain once one is chosen (e.g. `https://www.4mdiagnostics.in`). This feeds `metadataBase`, Open Graph tags, canonical URLs and `sitemap.xml`/`robots.txt`. Until set, the site falls back to a placeholder domain.
+- **Test & package pricing**: No prices are shown anywhere, per requirement — all test/package cards say "Contact 4M Diagnostics" / "Contact us for package details and pricing." Confirm this is the desired approach permanently, or supply pricing to display later.
+- **Blood test catalogue**: `lib/blood-tests.ts` contains a representative catalogue across the 20 requested categories (CBC, diabetes, liver, kidney, thyroid, lipid, iron/anemia, vitamins, hormones, cardiac, electrolytes, infection, hepatitis, autoimmune, coagulation, allergy, fertility, women's/men's health, preventive). Review and adjust the exact test list to match what 4M Diagnostics actually offers.
+- **Health package contents**: Package descriptions are intentionally generic ("Contact us for package details and pricing") since specific package contents were not supplied.
+- **Branding assets**: A placeholder favicon is in place (`app/favicon.ico`, from the Next.js starter). Supply a 4M Diagnostics logo/favicon and an Open Graph share image if available.
+- **Google Maps embed**: The Contact page embeds a map using the clinic address as a text query (no API key required). If this doesn't render the exact location precisely, replace it with an official Google Maps "Embed" iframe code from the location's share menu.
+- **Legal pages**: `/privacy-policy` and `/terms` contain reasonable default content describing the frontend-only, WhatsApp-based booking model. Have these reviewed/approved (or replaced) before publishing.
 
-## Deployment
+## 8. What was tested
 
-- **Frontend + API:** deploy the whole app to Vercel (`vercel.com/new`).
-  Set every variable from `.env.example` in the Vercel project's environment
-  variables.
-- **Database:** any managed PostgreSQL 15+ (e.g. Neon, Supabase, RDS, Prisma
-  Postgres). Run `npx prisma migrate deploy` against it as part of your
-  deploy step.
-- **DNS/CDN:** Cloudflare in front of the Vercel deployment.
-- **Razorpay:** create a Razorpay account, add `RAZORPAY_KEY_ID` /
-  `RAZORPAY_KEY_SECRET`, and register the webhook URL
-  (`/api/payments/webhook`, once implemented) with `RAZORPAY_WEBHOOK_SECRET`.
-- **WhatsApp:** requires a WhatsApp Business API provider (e.g. Meta Cloud
-  API) — set `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`,
-  `WHATSAPP_PHONE_NUMBER_ID`.
-- **Email:** any SMTP provider — set `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD`.
-- **S3 storage:** any S3-compatible bucket (AWS S3, Cloudflare R2,
-  Backblaze B2, ...) — set `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY`,
-  `S3_SECRET_KEY`, `S3_BUCKET`.
+- `npm run build` (TypeScript check + static generation for all routes, including all 42 doctor detail pages) — passes with no errors.
+- `npx eslint .` — passes with no errors or warnings.
+- All routes verified to return HTTP 200 in a local `next dev` run; an unknown doctor slug correctly renders the 404 page.
+- WhatsApp URL generation verified (correct `wa.me` number and URL-encoded message body).

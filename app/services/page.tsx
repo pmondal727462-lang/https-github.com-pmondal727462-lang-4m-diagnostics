@@ -1,46 +1,34 @@
 import type { Metadata } from "next";
-import { Container } from "../../components/ui/Container";
-import { SectionHeading, Card, EmptyState } from "../../components/ui/Card";
-import { LinkButton } from "../../components/ui/Button";
-import { getActiveServices } from "../../lib/data/services";
+import PageHero from "@/components/ui/PageHero";
+import Container from "@/components/ui/Container";
+import ServiceCard from "@/components/ServiceCard";
+import { SERVICES } from "@/lib/services";
 
 export const metadata: Metadata = {
-  title: "Services",
-  description: "Diagnostic, pathology and polyclinic services offered by 4M Diagnostics.",
+  title: "Our Services",
+  description:
+    "Explore diagnostic services at 4M Diagnostics: blood tests, pathology tests, health checkups, home sample collection, polyclinic and specialist doctor consultations.",
   alternates: { canonical: "/services" },
 };
 
-export default async function ServicesPage() {
-  const services = await getActiveServices();
-
+export default function ServicesPage() {
   return (
-    <Container className="py-14">
-      <SectionHeading eyebrow="What we offer" title="Our Services" />
+    <>
+      <PageHero
+        eyebrow="Our Services"
+        title="Comprehensive diagnostic & healthcare services"
+        subtitle="From routine blood work to specialist consultations, 4M Diagnostics supports your healthcare journey end to end."
+      />
 
-      <div className="mt-8">
-        {services.length === 0 ? (
-          <EmptyState title="Services will appear here soon" />
-        ) : (
+      <section className="py-14 sm:py-20">
+        <Container>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {services.map((service) => (
-              <Card key={service.id} className="p-6">
-                <h2 className="text-lg font-semibold text-foreground">{service.name}</h2>
-                {service.description ? (
-                  <p className="mt-2 text-sm text-muted">{service.description}</p>
-                ) : null}
-                <div className="mt-4 flex gap-3">
-                  <LinkButton href="/tests" size="sm" variant="outline">
-                    Browse Tests
-                  </LinkButton>
-                  <LinkButton href="/book-test" size="sm">
-                    Book Now
-                  </LinkButton>
-                </div>
-              </Card>
+            {SERVICES.map((service) => (
+              <ServiceCard key={service.title} {...service} />
             ))}
           </div>
-        )}
-      </div>
-    </Container>
+        </Container>
+      </section>
+    </>
   );
 }
